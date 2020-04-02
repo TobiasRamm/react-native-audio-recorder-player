@@ -169,14 +169,14 @@ class AudioRecorderPlayer {
          * @param {string} uri audio uri.
          * @returns {Promise<string>}
          */
-    this.startPlayer = async (uri) => {
+    this.startPlayer = async (uri, options) => {
       if (!uri) {
         uri = 'DEFAULT';
       }
       if (!this._isPlaying || this._hasPaused) {
         this._isPlaying = true;
         this._hasPaused = false;
-        return RNAudioRecorderPlayer.startPlayer(uri);
+        return RNAudioRecorderPlayer.startPlayer(uri, options);
       }
     };
     /**

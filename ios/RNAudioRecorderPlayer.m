@@ -69,7 +69,7 @@ double subscriptionDuration = 0.1;
     [audioPlayer stop];
     return;
   }
-  
+
   // NSString* status = [NSString stringWithFormat:@"{\"duration\": \"%@\", \"current_position\": \"%@\"}", [duration stringValue], [currentTime stringValue]];
   NSDictionary *status = @{
                          @"duration" : [duration stringValue],
@@ -197,11 +197,11 @@ RCT_EXPORT_METHOD(startRecorder:(NSString*)path
                         initWithURL:audioFileURL
                         settings:audioSettings
                         error:nil];
-  
+
   [audioRecorder setDelegate:self];
   [audioRecorder record];
   [self startRecorderTimer];
-    
+
   NSString *filePath = self->audioFileURL.absoluteString;
   resolve(filePath);
 }
@@ -233,15 +233,15 @@ RCT_EXPORT_METHOD(setVolume:(double) volume
 }
 
 RCT_EXPORT_METHOD(startPlayer:(NSString*)path
+                  options:(NSDictionary *)options)
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject
-                  options:(NSDictionary *)options)
                   {
     NSError *error;
-    
+
     NSString *output = [RCTConvert NSString:options[@"output"]];
     [self setAudioOutput:output];
-    
+
     if ([[path substringToIndex:4] isEqualToString:@"http"]) {
         audioFileURL = [NSURL URLWithString:path];
 
@@ -278,7 +278,7 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
                 audioFileURL = [NSURL URLWithString:path];
             }
         }
-                
+
         NSLog(@"Error %@",error);
 
         if (!audioPlayer) {
@@ -356,7 +356,7 @@ RCT_EXPORT_METHOD(pausePlayer: (RCTPromiseResolveBlock)resolve
         if (playTimer != nil) {
             [playTimer invalidate];
             playTimer = nil;
-        } 
+        }
         resolve(@"pause play");
     } else {
         reject(@"audioPlayer pause", @"audioPlayer is not playing", nil);
@@ -386,18 +386,18 @@ RCT_EXPORT_METHOD(getOutputs:(RCTResponseSenderBlock)callback)
   AVAudioSession *audioSession = [AVAudioSession sharedInstance];
   [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
   [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
-  
+
   NSMutableArray *array;
   BOOL isHeadsetOn = false;
   BOOL isBluetoothConnected = false;
-  
+
   AVAudioSessionRouteDescription* route = [[AVAudioSession sharedInstance] currentRoute];
   for (AVAudioSessionPortDescription* desc in [route outputs]) {
     if ([[desc portType] isEqualToString:AVAudioSessionPortHeadphones]) {
       isHeadsetOn = true;
       continue;
     }
-    
+
     if ([[desc portType] isEqualToString:AVAudioSessionPortBluetoothA2DP] ||
         [[desc portType] isEqualToString:AVAudioSessionPortBluetoothLE] ||
         [[desc portType] isEqualToString:AVAudioSessionPortBluetoothHFP]) {
@@ -411,7 +411,7 @@ RCT_EXPORT_METHOD(getOutputs:(RCTResponseSenderBlock)callback)
   } else {
     array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker]];
   }
-  
+
   callback(@[array]);
 }
 
