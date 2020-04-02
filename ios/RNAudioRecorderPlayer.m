@@ -10,6 +10,11 @@
 #import <React/RCTConvert.h>
 #import <AVFoundation/AVFoundation.h>
 
+NSString *const OutputPhone = @"Phone";
+NSString *const OutputPhoneSpeaker = @"Phone Speaker";
+NSString *const OutputBluetooth = @"Bluetooth";
+NSString *const OutputHeadphones = @"Headphones";
+
 NSString* GetDirectoryOfType_Sound(NSSearchPathDirectory dir) {
   NSArray* paths = NSSearchPathForDirectoriesInDomains(dir, NSUserDomainMask, YES);
   return [paths.firstObject stringByAppendingString:@"/"];
@@ -231,6 +236,10 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
     NSError *error;
+    
+    NSString *output = [RCTConvert NSString:options[@"output"]];
+    [self setAudioOutput:output];
+    
     if ([[path substringToIndex:4] isEqualToString:@"http"]) {
         audioFileURL = [NSURL URLWithString:path];
 
@@ -321,6 +330,22 @@ RCT_EXPORT_METHOD(seekToPlayer: (nonnull NSNumber*) time
     }
 }
 
+- (void)setAudioOutput:(NSString *)output {
+  if([output isEqualToString:OutputPhoneSpeaker]){
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [audioSession setActive:YES error:nil];
+    [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+  } else if ([output isEqualToString:OutputPhone]){
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [audioSession setActive:YES error:nil];
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+  } else {
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+  }
+}
+
 RCT_EXPORT_METHOD(pausePlayer: (RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"pause");
@@ -350,6 +375,42 @@ RCT_EXPORT_METHOD(stopPlayer:(RCTPromiseResolveBlock)resolve
     } else {
         reject(@"audioPlayer stop", @"audioPlayer is not set", nil);
     }
+}
+
+
+RCT_EXPORT_METHOD(getOutputs:(RCTResponseSenderBlock)callback)
+{
+  //Reset audio output route and session catetory when get the list
+  AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+  [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+  [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+  
+  NSMutableArray *array;
+  BOOL isHeadsetOn = false;
+  BOOL isBluetoothConnected = false;
+  
+  AVAudioSessionRouteDescription* route = [[AVAudioSession sharedInstance] currentRoute];
+  for (AVAudioSessionPortDescription* desc in [route outputs]) {
+    if ([[desc portType] isEqualToString:AVAudioSessionPortHeadphones]) {
+      isHeadsetOn = true;
+      continue;
+    }
+    
+    if ([[desc portType] isEqualToString:AVAudioSessionPortBluetoothA2DP] ||
+        [[desc portType] isEqualToString:AVAudioSessionPortBluetoothLE] ||
+        [[desc portType] isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+      isBluetoothConnected = true;
+    }
+  }
+  if (isHeadsetOn) {
+    array = [NSMutableArray arrayWithArray: @[OutputHeadphones]];
+  } else if (isBluetoothConnected) {
+    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker, OutputBluetooth]];
+  } else {
+    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker]];
+  }
+  
+  callback(@[array]);
 }
 
 @end

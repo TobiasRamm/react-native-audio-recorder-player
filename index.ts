@@ -288,6 +288,12 @@ class AudioRecorderPlayer {
     return RNAudioRecorderPlayer.setVolume(volume);
   };
 
+   getOutputs(callback) {
+    RNAudioRecorderPlayer.getOutputs(outputs => {
+      callback(outputs);
+    })
+  };
+
   /**
    * set subscription duration.
    * @param {number} sec subscription callback duration in seconds.
