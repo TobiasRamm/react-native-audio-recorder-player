@@ -54,5 +54,5 @@ package-lock.json
 # Built files
 tsconfig.tsbuildinfo
 index.js.flow
-index.d.ts
-index.js
+sds.d.ts
+sds.js
