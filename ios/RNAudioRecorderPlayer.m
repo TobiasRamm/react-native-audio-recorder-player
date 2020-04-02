@@ -233,9 +233,9 @@ RCT_EXPORT_METHOD(setVolume:(double) volume
 }
 
 RCT_EXPORT_METHOD(startPlayer:(NSString*)path
-                  options:(NSDictionary *)options)
+                  options:(NSDictionary *)options
                   resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject
+                  reject:(RCTPromiseRejectBlock)reject)
                   {
     NSError *error;
 
