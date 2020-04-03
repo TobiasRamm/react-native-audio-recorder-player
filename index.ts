@@ -226,6 +226,7 @@ class AudioRecorderPlayer {
   /**
    * start playing with param.
    * @param {string} uri audio uri.
+   * @param option
    * @returns {Promise<string>}
    */
   startPlayer = async (uri: string, option: string): Promise<string> => {
