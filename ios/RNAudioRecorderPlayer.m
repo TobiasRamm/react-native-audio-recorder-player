@@ -240,7 +240,7 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
     NSError *error;
 
     NSString *output = [RCTConvert NSString:options[@"output"]];
-    [self setAudioOutput:output];
+
 
     if ([[path substringToIndex:4] isEqualToString:@"http"]) {
         audioFileURL = [NSURL URLWithString:path];
@@ -260,6 +260,7 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
             // Able to play in background
             [[AVAudioSession sharedInstance] setActive: YES error: nil];
             [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+            [self setAudioOutput:output];
 
             [audioPlayer play];
             [self startPlayerTimer];
@@ -293,6 +294,7 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
             error: nil];
 
         NSLog(@"Error %@",error);
+        [self setAudioOutput:output];
         [audioPlayer play];
         [self startPlayerTimer];
 
@@ -334,15 +336,18 @@ RCT_EXPORT_METHOD(seekToPlayer: (nonnull NSNumber*) time
 
 - (void)setAudioOutput:(NSString *)output {
   if([output isEqualToString:OutputPhoneSpeaker]){
+    printf("OutputPhoneSpeaker");
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [audioSession setActive:YES error:nil];
     [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+
   } else if ([output isEqualToString:OutputPhone]){
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [audioSession setActive:YES error:nil];
     [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+    printf("OutputPhone");
   } else {
     [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
   }
