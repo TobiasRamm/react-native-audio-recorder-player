@@ -291,12 +291,18 @@ class AudioRecorderPlayer {
 
   /**
    * set subscription duration.
+   *
+   * TODO: Add available Outputs
    * @param {number} sec subscription callback duration in seconds.
    * @returns {Promise<string>}
    */
   setSubscriptionDuration = async (sec: number): Promise<string> => {
     return RNAudioRecorderPlayer.setSubscriptionDuration(sec);
   };
+
+
+
 }
+
 
 export default AudioRecorderPlayer;
