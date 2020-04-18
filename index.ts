@@ -198,6 +198,8 @@ class AudioRecorderPlayer {
     return 'Already recording';
   };
 
+
+
   /**
    * stop recording.
    * @returns {Promise<string>}
@@ -229,10 +231,27 @@ class AudioRecorderPlayer {
    * @param option
    * @returns {Promise<string>}
    */
+  play = async (option: string): Promise<string> => {
+
+    console.warn(option)
+    if (!this._isPlaying || this._hasPaused) {
+      this._isPlaying = true;
+      this._hasPaused = false;
+      return RNAudioRecorderPlayer.play(option);
+    }
+  };
+
+  /**
+   * start playing with param.
+   * @param {string} uri audio uri.
+   * @param option
+   * @returns {Promise<string>}
+   */
   startPlayer = async (uri: string, option: string): Promise<string> => {
     if (!uri) {
       uri = 'DEFAULT';
     }
+
     if (!this._isPlaying || this._hasPaused) {
       this._isPlaying = true;
       this._hasPaused = false;
@@ -271,9 +290,9 @@ class AudioRecorderPlayer {
    * @returns {Promise<string>}
    */
   seekToPlayer = async (time: number): Promise<string> => {
-    if (Platform.OS === 'ios') {
-      time = time / 1000;
-    }
+
+
+    console.warn(time)
     return RNAudioRecorderPlayer.seekToPlayer(time);
   };
 
