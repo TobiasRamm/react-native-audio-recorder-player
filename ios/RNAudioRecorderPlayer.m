@@ -159,7 +159,8 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
         NSLog(@"Error %@",error);
 
         NSString *filePath = audioFileURL.absoluteString;
-        resolve(filePath);
+         NSNumber *dur =  [NSNumber numberWithDouble:audioPlayer.duration * 1000];
+                    resolve(dur);
     }
 }
 
