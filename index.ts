@@ -232,8 +232,6 @@ class AudioRecorderPlayer {
    * @returns {Promise<string>}
    */
   play = async (option: string): Promise<string> => {
-
-    console.warn(option)
     if (!this._isPlaying || this._hasPaused) {
       this._isPlaying = true;
       this._hasPaused = false;
@@ -290,9 +288,6 @@ class AudioRecorderPlayer {
    * @returns {Promise<string>}
    */
   seekToPlayer = async (time: number): Promise<string> => {
-
-
-    console.warn(time)
     return RNAudioRecorderPlayer.seekToPlayer(time);
   };
 
