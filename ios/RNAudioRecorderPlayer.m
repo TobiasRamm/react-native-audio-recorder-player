@@ -127,9 +127,7 @@ RCT_EXPORT_METHOD(startPlayer:(NSString*)path
             [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
 
             NSString *filePath = audioFileURL.absoluteString;
-
-            NSNumber *dur =  [NSNumber numberWithDouble:audioPlayer.duration * 1000];
-            resolve(dur);
+            resolve(filePath);
         }];
 
         [downloadTask resume];
