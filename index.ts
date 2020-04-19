@@ -311,7 +311,6 @@ class AudioRecorderPlayer {
   /**
    * set subscription duration.
    *
-   * TODO: Add available Outputs
    * @param {number} sec subscription callback duration in seconds.
    * @returns {Promise<string>}
    */
@@ -319,6 +318,11 @@ class AudioRecorderPlayer {
     return RNAudioRecorderPlayer.setSubscriptionDuration(sec);
   };
 
+  getOutputs = async (callback): Promise<string> => {
+    RNAudioRecorderPlayer.getOutputs(outputs => {
+      callback(outputs);
+    });
+  };
 
 
 }

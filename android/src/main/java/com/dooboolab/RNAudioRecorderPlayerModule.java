@@ -7,10 +7,12 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Callback;
 
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
@@ -21,6 +23,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
 import android.util.Log;
 
+import android.content.Context;
+
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactContext;
@@ -36,6 +41,8 @@ import java.util.TimerTask;
 
 import javax.annotation.Nullable;
 
+
+
 public class RNAudioRecorderPlayerModule extends ReactContextBaseJavaModule implements PermissionListener{
   final private static String TAG = "RNAudioRecorderPlayer";
   final private static String FILE_LOCATION = "/sdcard/sound.mp4";
@@ -46,6 +53,12 @@ public class RNAudioRecorderPlayerModule extends ReactContextBaseJavaModule impl
   private final ReactApplicationContext reactContext;
   private MediaRecorder mediaRecorder;
   private MediaPlayer mediaPlayer;
+
+    private static final String OUTPUT_PHONE = "Phone";
+    private static final String OUTPUT_PHONE_SPAKER = "Phone Speaker";
+    private static final String OUTPUT_BLUETOOTH = "Bluetooth";
+    private static final String OUTPUT_HEADPHONES = "Headphones";
+
 
   private Runnable recorderRunnable;
   private TimerTask mTask;
@@ -159,11 +172,30 @@ public class RNAudioRecorderPlayerModule extends ReactContextBaseJavaModule impl
   }
 
   @ReactMethod
-  public void startPlayer(final String path, final Promise promise) {
+    public void getOutputs(Callback callback) {
+      WritableArray outputsArray = Arguments.createArray();
+
+      AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+      if (audioManager.isWiredHeadsetOn()) {
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_HEADPHONES);
+      } else if (audioManager.isBluetoothA2dpOn() || audioManager.isBluetoothScoOn()) {
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH);
+      } else {
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
+        outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
+      }
+      callback.invoke(outputsArray);
+    }
+
+  @ReactMethod
+  public void startPlayer(final String path,final ReadableMap playbackSettings, final Promise promise) {
     if (mediaPlayer != null) {
       Boolean isPaused = !mediaPlayer.isPlaying() && mediaPlayer.getCurrentPosition() > 1;
 
       if (isPaused) {
+      setAudioOutput(playbackSettings);
         mediaPlayer.start();
         promise.resolve("player resumed.");
         return;
@@ -185,6 +217,7 @@ public class RNAudioRecorderPlayerModule extends ReactContextBaseJavaModule impl
         @Override
         public void onPrepared(final MediaPlayer mp) {
           Log.d(TAG, "mediaplayer prepared and start");
+          setAudioOutput(playbackSettings);
           mp.start();
 
           /**
@@ -338,4 +371,42 @@ public class RNAudioRecorderPlayerModule extends ReactContextBaseJavaModule impl
     }
     return false;
   }
+
+   private void setAudioOutput(ReadableMap playbackSettings)
+    {
+      if(playbackSettings != null && playbackSettings.hasKey("output"))
+      {
+        String audioPort = playbackSettings.getString("output");
+        AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+        switch (audioPort){
+          case RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH:
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            audioManager.startBluetoothSco();
+            audioManager.setBluetoothScoOn(true);
+            break;
+          case RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER:
+            if (audioManager.isBluetoothScoOn() || audioManager.isBluetoothA2dpOn()) {
+              audioManager.setMode(AudioManager.MODE_IN_CALL);
+            } else {
+              audioManager.setMode(AudioManager.MODE_NORMAL);
+            }
+            audioManager.stopBluetoothSco();
+            audioManager.setBluetoothScoOn(false);
+            audioManager.setSpeakerphoneOn(true);
+            break;
+          case RNAudioRecorderPlayerModule.OUTPUT_PHONE:
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
+            //break;
+          case "None":
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            audioManager.stopBluetoothSco();
+            audioManager.setSpeakerphoneOn(false);
+            audioManager.setBluetoothScoOn(false);
+            break;
+          default:
+            //audioManager.setSpeakerphoneOn(true);
+            break;
+        }
+      }
+    }
 }
